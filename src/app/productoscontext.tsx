@@ -1,11 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
+  ReactNode,
   useContext,
   useEffect,
   useState,
-  ReactNode,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Producto = {
   id: number;
@@ -13,6 +13,7 @@ type Producto = {
   precio: number;
   descripcion: string;
   stock: number;
+  categoria: string;
 };
 
 type ProductosContextType = {
@@ -22,7 +23,8 @@ type ProductosContextType = {
     nombre: string,
     precio: number,
     descripcion: string,
-    stock: number
+    stock: number,
+    categoria: string
   ) => void;
 
   eliminarProducto: (id: number) => void;
@@ -32,7 +34,8 @@ type ProductosContextType = {
     nombre: string,
     precio: number,
     descripcion: string,
-    stock: number
+    stock: number,
+    categoria: string
   ) => void;
 };
 
@@ -48,6 +51,7 @@ const productosIniciales: Producto[] = [
     descripcion:
       "Alfajor artesanal relleno de dulce de membrillo.",
     stock: 25,
+    categoria: "Tradicionales",
   },
   {
     id: 2,
@@ -55,6 +59,7 @@ const productosIniciales: Producto[] = [
     precio: 1800,
     descripcion: "Alfajor cubierto de chocolate.",
     stock: 18,
+    categoria: "Chocolate",
   },
   {
     id: 3,
@@ -62,6 +67,7 @@ const productosIniciales: Producto[] = [
     precio: 8000,
     descripcion: "Caja con 6 alfajores artesanales.",
     stock: 10,
+    categoria: "Combos",
   },
 ];
 
@@ -97,17 +103,29 @@ export function ProductosProvider({
           productosGuardados
         );
 
-        // Agrega stock 0 a productos antiguos que no lo tenían
         const productosActualizados =
           productosCargados.map((producto: Producto) => ({
             ...producto,
+
+            // Si no tiene stock, ponemos 0
             stock: producto.stock ?? 0,
+
+            // Si no tiene categoría o está vacía,
+            // le asignamos "Otros"
+            categoria:
+              producto.categoria &&
+              producto.categoria.trim() !== ""
+                ? producto.categoria
+                : "Otros",
           }));
 
         setProductos(productosActualizados);
       }
     } catch (error) {
-      console.log("Error al cargar productos:", error);
+      console.log(
+        "Error al cargar productos:",
+        error
+      );
     } finally {
       setCargando(false);
     }
@@ -120,7 +138,10 @@ export function ProductosProvider({
         JSON.stringify(productos)
       );
     } catch (error) {
-      console.log("Error al guardar productos:", error);
+      console.log(
+        "Error al guardar productos:",
+        error
+      );
     }
   };
 
@@ -128,7 +149,8 @@ export function ProductosProvider({
     nombre: string,
     precio: number,
     descripcion: string,
-    stock: number
+    stock: number,
+    categoria: string
   ) => {
     const nuevoProducto: Producto = {
       id: Date.now(),
@@ -136,6 +158,12 @@ export function ProductosProvider({
       precio,
       descripcion,
       stock,
+
+      // Nos aseguramos de que nunca quede vacía
+      categoria:
+        categoria.trim() !== ""
+          ? categoria
+          : "Otros",
     };
 
     setProductos((productosActuales) => [
@@ -157,7 +185,8 @@ export function ProductosProvider({
     nombre: string,
     precio: number,
     descripcion: string,
-    stock: number
+    stock: number,
+    categoria: string
   ) => {
     setProductos((productosActuales) =>
       productosActuales.map((producto) =>
@@ -168,6 +197,12 @@ export function ProductosProvider({
               precio,
               descripcion,
               stock,
+
+              // También corregimos la categoría al editar
+              categoria:
+                categoria.trim() !== ""
+                  ? categoria
+                  : "Otros",
             }
           : producto
       )

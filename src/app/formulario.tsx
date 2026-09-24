@@ -1,14 +1,15 @@
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
+  Alert,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
   TextInput,
-  Pressable,
-  Alert,
+  View,
 } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
 import { useProductos } from "./productoscontext";
-import { useState } from "react";
 
 export default function Formulario() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -41,12 +42,24 @@ export default function Formulario() {
     productoEditar?.stock.toString() || ""
   );
 
+  const [categoria, setCategoria] = useState(
+    productoEditar?.categoria || ""
+  );
+
+  const categorias = [
+    "Tradicionales",
+    "Chocolate",
+    "Combos",
+    "Otros",
+  ];
+
   const guardar = () => {
     if (
       !nombre.trim() ||
       !precio.trim() ||
       !descripcion.trim() ||
-      !stock.trim()
+      !stock.trim() ||
+      !categoria
     ) {
       Alert.alert(
         "Campos incompletos",
@@ -80,7 +93,8 @@ export default function Formulario() {
         nombre.trim(),
         precioNumero,
         descripcion.trim(),
-        stockNumero
+        stockNumero,
+        categoria
       );
 
       Alert.alert(
@@ -98,7 +112,8 @@ export default function Formulario() {
         nombre.trim(),
         precioNumero,
         descripcion.trim(),
-        stockNumero
+        stockNumero,
+        categoria
       );
 
       Alert.alert(
@@ -115,7 +130,10 @@ export default function Formulario() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.title}>
         {id ? "Editar producto" : "Agregar producto"}
       </Text>
@@ -163,6 +181,34 @@ export default function Formulario() {
         onChangeText={setStock}
       />
 
+      {/* CATEGORÍAS */}
+
+      <Text style={styles.label}>Categoría</Text>
+
+      <View style={styles.categoriasContainer}>
+        {categorias.map((item) => (
+          <Pressable
+            key={item}
+            style={[
+              styles.categoriaButton,
+              categoria === item &&
+                styles.categoriaSeleccionada,
+            ]}
+            onPress={() => setCategoria(item)}
+          >
+            <Text
+              style={[
+                styles.categoriaText,
+                categoria === item &&
+                  styles.categoriaTextSeleccionada,
+              ]}
+            >
+              {item}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       <Pressable
         style={styles.button}
         onPress={guardar}
@@ -171,15 +217,15 @@ export default function Formulario() {
           {id ? "Guardar cambios" : "Guardar producto"}
         </Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
     backgroundColor: "#000",
+    flexGrow: 1,
   },
 
   title: {
@@ -209,12 +255,43 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
 
+  categoriasContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 25,
+  },
+
+  categoriaButton: {
+    backgroundColor: "#222",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#555",
+  },
+
+  categoriaSeleccionada: {
+    backgroundColor: "white",
+    borderColor: "white",
+  },
+
+  categoriaText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+
+  categoriaTextSeleccionada: {
+    color: "black",
+  },
+
   button: {
     backgroundColor: "white",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
+    marginBottom: 20,
   },
 
   buttonText: {
